@@ -1,0 +1,87 @@
+{
+  "headerDetails": {
+    "logo": "https://nexuspublication.com/logos/Nexus%20Logo%20png-01.png",
+    "school_name": "Knowledge High School",
+    "address": "Opp. Kacheri Darwaja, Mahemdabad",
+    "std": "10",
+    "day": "Monday",
+    "subject": "English",
+    "date": "2024-10-17",
+    "timing": "10:00 AM - 12:00 PM",
+    "total_marks": "100"
+  },
+  "questionsList": {
+    "mcq": {
+      "questions": [
+        {
+          "question": "ફ્રાન્સની રાજધાની કઈ છે?",
+          "options": ["Berlin", "Madrid", "Paris", "Rome"],
+          "answer": "Paris",
+          "marks": 1
+        },
+        {
+          "question": "What is 2 + 2?",
+          "options": ["3", "4", "5", "6"],
+          "answer": "4",
+          "marks": 1
+        }
+      ]
+    },
+    "blanks": {
+      "questions": [
+        {
+          "question": "The largest planet in our solar system is ____.",
+          "answer": "Jupiter",
+          "marks": 2
+        }
+      ]
+    },
+    "truefalse": {
+      "questions": [
+        {
+          "question": "Venus is largest planet in our solar system.",
+          "answer": "False",
+          "marks": 1
+        },
+        {
+          "question": "Mars is largest planet in our solar system.",
+          "answer": "False",
+          "marks": 1
+        },
+        {
+          "question": "Jupiter is largest planet in our solar system.",
+          "answer": "False",
+          "marks": 1
+        }
+      ]
+    },
+    "twoLineQuestions": {
+      "questions": [
+        {
+          "question": "This is a two line question.",
+          "answer": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita.",
+          "marks": 1
+        }
+      ]
+    },
+    "shortQuestions": {
+      "questions": [
+        {
+          "question": "This is a short question.",
+          "answer": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in.",
+          "marks": 3
+        }
+      ]
+    },
+    "longQuestions": {
+      "questions": [
+        {
+          "question": "This is a long question.",
+          "answer": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in.",
+          "marks": 5
+        }
+      ]
+    }
+  },
+  "showAnswers": true
+}

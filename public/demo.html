@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Preview</title>
+    <style>
+      /* Simulate A4 page size */
+      @media print {
+        body {
+          width: 210mm;
+          height: 297mm;
+          margin: 0;
+        }
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        width: 210mm; /* A4 width */
+        min-height: 297mm; /* A4 height */
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        display: flex;
+        /* justify-content: center; */
+        align-items: center;
+        gap: 20px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+      }
+      .school-name {
+        font-size: 25px;
+        font-weight: bold;
+      }
+      .address {
+        font-size: 16px;
+        color: #888;
+      }
+      .section {
+        margin-top: 20px;
+      }
+      .question-type {
+        font-weight: bold;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 5px;
+      }
+      .question {
+        margin-left: 20px;
+      }
+      .answer {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        color: green;
+        font-weight: 600;
+      }
+      .checkbox {
+        height: 12px;
+        width: 12px;
+        margin-right: 5px;
+      }
+      /* Paper Information Style */
+      .exam-header {
+        width: 100%;
+        font-weight: 600;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+      .left {
+        text-align: left;
+        /* flex: 1; */
+      }
+      .center {
+        text-align: left;
+        /* flex: 1; */
+      }
+      .right {
+        text-align: left;
+        /* flex: 1; */
+      }
+      .mcq-options {
+        display: flex;
+        gap: 10px;
+      }
+      .tfbox {
+        width: 30px;
+        /* background: #000; */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="pdf-content"></div>
+    <script>
+      // Mocking the details.json data directly in the script for demonstration
+      const details = {
+        headerDetails: {
+          logo: "https://nexuspublication.com/logos/Nexus%20Logo%20png-01.png",
+          school_name: "Knowledge High School",
+          address: "Opp. Kacheri Darwaja, Mahemdabad",
+          std: "10",
+          day: "Monday",
+          subject: "Mathematics",
+          date: "2024-10-17",
+          timing: "10:00 AM - 12:00 PM",
+          total_marks: "100",
+        },
+        questionsList: {
+          mcq: {
+            questions: [
+              {
+                question: "ફ્રાન્સની રાજધાની કઈ છે?",
+                options: ["Berlin", "Madrid", "Paris", "Rome"],
+                answer: "Paris",
+                marks: 1,
+              },
+              {
+                question: "What is 2 + 2?",
+                options: ["3", "4", "5", "6"],
+                answer: "4",
+                marks: 1,
+              },
+            ],
+          },
+          blanks: {
+            questions: [
+              {
+                question: "The largest planet in our solar system is ____. ",
+                answer: "Jupiter",
+                marks: 2,
+              },
+            ],
+          },
+          truefalse: {
+            questions: [
+              {
+                question: "Venus is largest planet in our solar system.",
+                answer: "False",
+                marks: 1,
+              },
+              {
+                question:
+                  "ઇલેક્ટ્રિક સર્કિટનો કયો ઘટક વિદ્યુત ઊર્જાનેઅસ્થાયી રૂપેસંગ્રહિત કરેછે?",
+                answer: "False",
+                marks: 1,
+              },
+              {
+                question: "Venus is largest planet in our solar system.",
+                answer: "False",
+                marks: 1,
+              },
+            ],
+          },
+          twoLineQuestions: {
+            questions: [
+              {
+                question: "This is a two line question.",
+                answer:
+                  "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita.",
+                marks: 1,
+              },
+            ],
+          },
+          shortQuestions: {
+            questions: [
+              {
+                question: "This is a short question.",
+                answer:
+                  "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in.",
+                marks: 3,
+              },
+            ],
+          },
+          longQuestions: {
+            questions: [
+              {
+                question: "This is a long question.",
+                answer:
+                  "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in.",
+                marks: 5,
+              },
+            ],
+          },
+        },
+        showAnswers: true,
+      };
+      function calculateTotalMarks(questions) {
+        return questions.reduce(
+          (total, question) => total + (question.marks || 0),
+          0
+        );
+      }
+
+      // Destructure the necessary properties from the details object
+      const { headerDetails, questionsList, showAnswers } = details;
+
+      // Function to calculate total marks for a category
+      function calculateTotalMarks(questions) {
+        return questions.reduce(
+          (total, question) => total + (question.marks || 0),
+          0
+        );
+      }
+
+      // Calculate total marks for each category after destructuring
+      const totalMcqMarks = calculateTotalMarks(questionsList.mcq.questions);
+      const totalBlanksMarks = calculateTotalMarks(
+        questionsList.blanks.questions
+      );
+      const totalTFMarks = calculateTotalMarks(
+        questionsList.truefalse.questions
+      );
+      const totalTwoLineMarks = calculateTotalMarks(
+        questionsList.twoLineQuestions.questions
+      );
+      const totalshortQueMarks = calculateTotalMarks(
+        questionsList.shortQuestions.questions
+      );
+      const totalLongQueMarks = calculateTotalMarks(
+        questionsList.longQuestions.questions
+      );
+
+      const overallTotalMarks = totalMcqMarks + totalBlanksMarks;
+
+      // HTML generation
+      const htmlContent = `
+              <div class="header">
+                <div><img src="${
+                  headerDetails.logo
+                }" alt="School Logo" height="80" /></div>
+                <div style="text-align: center;">
+                  <div class="school-name">${
+                    headerDetails.school_name || "School Name"
+                  }</div>
+                  <div class="address">${
+                    headerDetails.address || "School Address"
+                  }</div>
+                </div>
+              </div>
+              <div class="exam-header">
+        <div class="left">STD: ${headerDetails.std || "Standard"}</div>
+        <div class="center">SUBJECT: ${headerDetails.subject || "Subject"}</div>
+        <div class="right">TOTAL MARKS: ${
+          headerDetails.total_marks || "Total Marks"
+        }</div>
+      </div>
+              <div class="exam-header">
+        <div class="left">DAY: ${headerDetails.day || "Day"}</div>
+        <div class="center">DATE: ${headerDetails.date || "Date"}</div>
+        <div class="right">TIME: ${headerDetails.timing || "Time"}</div>
+      </div>
+
+              <div class="section">
+                <div class="question-type">
+                  <div>
+                  Multiple Choice Questions</div>
+                  <div>( ${totalMcqMarks} )</div>
+                </div>
+                ${questionsList.mcq.questions
+                  .map(
+                    (question, index) => `
+                    <div class="question">
+                      <span>${index + 1}) ${question.question}</span>
+                      <div class="mcq-options">
+                        ${question.options
+                          .map(
+                            (option) => `
+                          <div>
+                            <img class="checkbox" src="/static/images/checkbox.png" />
+                            <span>${option}</span>
+                          </div>
+                        `
+                          )
+                          .join("")}
+                      </div>
+                      ${
+                        showAnswers
+                          ? `<div class="answer">Ans: ${question.answer}</div>`
+                          : ""
+                      }
+                    </div>
+                  `
+                  )
+                  .join("")}
+              </div>
+
+              <div class="section">
+              <div class="section">
+                <div class="question-type">
+                  <div>
+                  Fill in the Blanks</div>
+                  <div>( ${totalBlanksMarks} )</div>
+                </div>
+                ${questionsList.blanks.questions
+                  .map(
+                    (question, index) => `
+                    <div class="question">
+                      <span>${index + 1}) ${question.question}</span>
+                      ${
+                        showAnswers
+                          ? `<div class="answer">Ans: ${question.answer}</div>`
+                          : ""
+                      }
+                    </div>
+                  `
+                  )
+                  .join("")}
+              </div>
+
+              <div class="section">
+                <div class="question-type">
+                  <div>
+                  Write (T) for True and (F) for False.</div>
+                  <div>( ${totalTFMarks} )</div>
+                </div>
+                ${questionsList.truefalse.questions
+                  .map(
+                    (question, index) => `
+                    <div class="question">
+                      <span>${index + 1}) ${
+                      question.question
+                    } </span><input type="text" class="tfbox">
+                      ${
+                        showAnswers
+                          ? `<div class="answer">Ans: ${question.answer}</div>`
+                          : ""
+                      }
+                    </div>
+                  `
+                  )
+                  .join("")}
+              </div>
+
+              <div class="section">
+                <div class="question-type">
+                  <div>
+                  Write answers of the following question in 1-2 line.</div>
+                  <div>( ${totalTwoLineMarks} )</div>
+                </div>
+                ${questionsList.twoLineQuestions.questions
+                  .map(
+                    (question, index) => `
+                    <div class="question">
+                      <span>${index + 1}) ${question.question}</span>
+                      ${
+                        showAnswers
+                          ? `<div class="answer">Ans: ${question.answer}</div>`
+                          : ""
+                      }
+                    </div>
+                  `
+                  )
+                  .join("")}
+              </div>
+
+              <div class="section">
+                <div class="question-type">
+                  <div>
+                  Write answers of the following question short.</div>
+                  <div>( ${totalshortQueMarks} )</div>
+                </div>
+                ${questionsList.shortQuestions.questions
+                  .map(
+                    (question, index) => `
+                    <div class="question">
+                      <span>${index + 1}) ${question.question}</span>
+                      ${
+                        showAnswers
+                          ? `<div class="answer">Ans: ${question.answer}</div>`
+                          : ""
+                      }
+                    </div>
+                  `
+                  )
+                  .join("")}
+              </div>
+
+              <div class="section">
+                <div class="question-type">
+                  <div>
+                  Write answers of the following question in 100 words.</div>
+                  <div>( ${totalLongQueMarks} )</div>
+                </div>
+                ${questionsList.longQuestions.questions
+                  .map(
+                    (question, index) => `
+                    <div class="question">
+                      <span>${index + 1}) ${question.question}</span>
+                      ${
+                        showAnswers
+                          ? `<div class="answer">Ans: ${question.answer}</div>`
+                          : ""
+                      }
+                    </div>
+                  `
+                  )
+                  .join("")}
+              </div>
+            `;
+
+      // Render the generated HTML into the page
+      document.getElementById("pdf-content").innerHTML = htmlContent;
+    </script>
+  </body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Preview</title>
+    <style>
+      @media print {
+        body {
+          width: 210mm;
+          height: 297mm;
+          margin: 0;
+        }
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        width: 210mm; /* A4 width */
+        min-height: 297mm; /* A4 height */
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+      }
+      .school-name {
+        font-size: 25px;
+        font-weight: bold;
+      }
+      .address {
+        font-size: 16px;
+        color: #888;
+      }
+      .section {
+        margin-top: 20px;
+      }
+      .question-type {
+        font-weight: bold;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 5px;
+      }
+      .question {
+        margin-left: 20px;
+      }
+      .answer {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        color: green;
+        font-weight: 600;
+      }
+      .checkbox {
+        height: 12px;
+        width: 12px;
+        margin-right: 5px;
+      }
+      .exam-header {
+        width: 100%;
+        font-weight: 600;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+      .left {
+        text-align: left;
+      }
+      .center {
+        text-align: left;
+      }
+      .right {
+        text-align: left;
+      }
+      .mcq-options {
+        display: flex;
+        gap: 10px;
+      }
+      .tfbox {
+        width: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="pdf-content"></div>
+    <script>
+      // Mocking the details.json data directly in the script for demonstration
+      const details = {
+        headerDetails: {
+          logo: "https://nexuspublication.com/logos/Nexus%20Logo%20png-01.png",
+          school_name: "Knowledge High School",
+          address: "Opp. Kacheri Darwaja, Mahemdabad",
+          std: "10",
+          day: "Monday",
+          subject: "Mathematics",
+          date: "2024-10-17",
+          timing: "10:00 AM - 12:00 PM",
+          total_marks: "100",
+        },
+        questionsList: {
+          mcq: {
+            questions: [
+              {
+                question: "ફ્રાન્સની રાજધાની કઈ છે?",
+                options: ["Berlin", "Madrid", "Paris", "Rome"],
+                answer: "Paris",
+                marks: 1,
+              },
+              {
+                question: "What is 2 + 2?",
+                options: ["3", "4", "5", "6"],
+                answer: "4",
+                marks: 1,
+              },
+            ],
+          },
+          blanks: {
+            questions: [
+              {
+                question: "The largest planet in our solar system is ____. ",
+                answer: "Jupiter",
+                marks: 2,
+              },
+            ],
+          },
+          truefalse: {
+            questions: [
+              {
+                question: "Venus is largest planet in our solar system.",
+                answer: "False",
+                marks: 1,
+              },
+              {
+                question:
+                  "ઇલેક્ટ્રિક સર્કિટનો કયો ઘટક વિદ્યુત ઊર્જાનેઅસ્થાયી રૂપેસંગ્રહિત કરેછે?",
+                answer: "False",
+                marks: 1,
+              },
+              {
+                question: "Venus is largest planet in our solar system.",
+                answer: "False",
+                marks: 1,
+              },
+            ],
+          },
+          twoLineQuestions: {
+            questions: [
+              {
+                question: "This is a two line question.",
+                answer:
+                  "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita.",
+                marks: 1,
+              },
+            ],
+          },
+          shortQuestions: {
+            questions: [
+              {
+                question: "This is a short question.",
+                answer:
+                  "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in.",
+                marks: 3,
+              },
+            ],
+          },
+          longQuestions: {
+            questions: [
+              {
+                question: "This is a long question.",
+                answer:
+                  "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus cumque ratione expedita laborum quas iure praesentium soluta quia vel in.",
+                marks: 5,
+              },
+            ],
+          },
+        },
+        showAnswers: true,
+      };
+
+      const { headerDetails, questionsList, showAnswers } = details;
+      // Function to convert index to alphabet (A, B, C, ...)
+      const getAlphabetTitle = (index) => String.fromCharCode(65 + index);
+
+      // Initialize total marks for each question type
+      const totalMcqMarks =
+        questionsList.mcq?.questions.reduce((total, q) => total + q.marks, 0) ||
+        0;
+      const totalBlanksMarks =
+        questionsList.blanks?.questions.reduce(
+          (total, q) => total + q.marks,
+          0
+        ) || 0;
+      const totalTFMarks =
+        questionsList.truefalse?.questions.reduce(
+          (total, q) => total + q.marks,
+          0
+        ) || 0;
+      const totalTwoLineMarks =
+        questionsList.twoLineQuestions?.questions.reduce(
+          (total, q) => total + q.marks,
+          0
+        ) || 0;
+      const totalShortQueMarks =
+        questionsList.shortQuestions?.questions.reduce(
+          (total, q) => total + q.marks,
+          0
+        ) || 0;
+      const totalLongQueMarks =
+        questionsList.longQuestions?.questions.reduce(
+          (total, q) => total + q.marks,
+          0
+        ) || 0;
+
+      // Generate the HTML content
+      const htmlContent = `
+  <div class="header">
+    <div><img src="${headerDetails.logo}" alt="School Logo" height="80" /></div>
+    <div style="text-align: center;">
+      <div class="school-name">${
+        headerDetails.school_name || "School Name"
+      }</div>
+      <div class="address">${headerDetails.address || "School Address"}</div>
+    </div>
+  </div>
+  <div class="exam-header">
+    <div class="left">STD: ${headerDetails.std || "Standard"}</div>
+    <div class="center">SUBJECT: ${headerDetails.subject || "Subject"}</div>
+    <div class="right">TOTAL MARKS: ${
+      headerDetails.total_marks || "Total Marks"
+    }</div>
+  </div>
+  <div class="exam-header">
+    <div class="left">DAY: ${headerDetails.day || "Day"}</div>
+    <div class="center">DATE: ${headerDetails.date || "Date"}</div>
+    <div class="right">TIME: ${headerDetails.timing || "Time"}</div>
+  </div>
+  
+  <!-- Multiple Choice Questions Section -->
+  ${
+    questionsList.mcq
+      ? `
+  <div class="section">
+    <div class="question-type">
+      <div>${getAlphabetTitle(0)}) Multiple Choice Questions</div>
+      <div>( ${totalMcqMarks} Marks )</div>
+    </div>
+    ${questionsList.mcq.questions
+      .map(
+        (question, index) => `
+        <div class="question">
+          <span>${index + 1}) ${question.question}</span>
+          <div class="mcq-options">
+            ${question.options
+              .map(
+                (option, optIndex) => `
+              <div>
+                <img class="checkbox" src="/static/images/checkbox.png" />
+                <span>${String.fromCharCode(65 + optIndex)}) ${option}</span>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+          ${
+            showAnswers
+              ? `<div class="answer">Ans: ${question.answer}</div>`
+              : ""
+          }
+        </div>
+      `
+      )
+      .join("")}
+  </div>`
+      : ""
+  }
+
+  <!-- Fill in the Blanks Section -->
+  ${
+    questionsList.blanks
+      ? `
+  <div class="section">
+    <div class="question-type">
+      <div>${getAlphabetTitle(1)}) Fill in the Blanks</div>
+      <div>( ${totalBlanksMarks} Marks )</div>
+    </div>
+    ${questionsList.blanks.questions
+      .map(
+        (question, index) => `
+        <div class="question">
+          <span>${index + 1}) ${question.question}</span>
+          ${
+            showAnswers
+              ? `<div class="answer">Ans: ${question.answer}</div>`
+              : ""
+          }
+        </div>
+      `
+      )
+      .join("")}
+  </div>`
+      : ""
+  }
+
+  <!-- True or False Section -->
+  ${
+    questionsList.truefalse
+      ? `
+  <div class="section">
+    <div class="question-type">
+      <div>${getAlphabetTitle(2)}) Write (T) for True and (F) for False</div>
+      <div>( ${totalTFMarks} Marks )</div>
+    </div>
+    ${questionsList.truefalse.questions
+      .map(
+        (question, index) => `
+        <div class="question">
+          <span>${index + 1}) ${question.question}</span>
+          <input type="text" class="tfbox">
+          ${
+            showAnswers
+              ? `<div class="answer">Ans: ${question.answer}</div>`
+              : ""
+          }
+        </div>
+      `
+      )
+      .join("")}
+  </div>`
+      : ""
+  }
+
+  <!-- Two Line Questions Section -->
+  ${
+    questionsList.twoLineQuestions
+      ? `
+  <div class="section">
+    <div class="question-type">
+      <div>${getAlphabetTitle(3)}) Answer the following in 1-2 lines</div>
+      <div>( ${totalTwoLineMarks} Marks )</div>
+    </div>
+    ${questionsList.twoLineQuestions.questions
+      .map(
+        (question, index) => `
+        <div class="question">
+          <span>${index + 1}) ${question.question}</span>
+          ${
+            showAnswers
+              ? `<div class="answer">Ans: ${question.answer}</div>`
+              : ""
+          }
+        </div>
+      `
+      )
+      .join("")}
+  </div>`
+      : ""
+  }
+
+  <!-- Short Questions Section -->
+  ${
+    questionsList.shortQuestions
+      ? `
+  <div class="section">
+    <div class="question-type">
+      <div>${getAlphabetTitle(4)}) Answer the following short questions</div>
+      <div>( ${totalShortQueMarks} Marks )</div>
+    </div>
+    ${questionsList.shortQuestions.questions
+      .map(
+        (question, index) => `
+        <div class="question">
+          <span>${index + 1}) ${question.question}</span>
+          ${
+            showAnswers
+              ? `<div class="answer">Ans: ${question.answer}</div>`
+              : ""
+          }
+        </div>
+      `
+      )
+      .join("")}
+  </div>`
+      : ""
+  }
+
+  <!-- Long Questions Section -->
+  ${
+    questionsList.longQuestions
+      ? `
+  <div class="section">
+    <div class="question-type">
+      <div>${getAlphabetTitle(5)}) Answer the following in 100 words</div>
+      <div>( ${totalLongQueMarks} Marks )</div>
+    </div>
+    ${questionsList.longQuestions.questions
+      .map(
+        (question, index) => `
+        <div class="question">
+          <span>${index + 1}) ${question.question}</span>
+          ${
+            showAnswers
+              ? `<div class="answer">Ans: ${question.answer}</div>`
+              : ""
+          }
+        </div>
+      `
+      )
+      .join("")}
+  </div>`
+      : ""
+  }
+`;
+      document.getElementById("pdf-content").innerHTML = htmlContent;
+    </script>
+  </body>
+</html> -->
