@@ -6,63 +6,12 @@ const app = express();
 
 app.use(express.json());
 
-// ========== FOR LOCAL DATA FILE
 
-// // Serve static files (like index.html) from the public folder
-// app.use(express.static(path.join(__dirname, "public")));
-
-// // Load JSON data from details.json
-// const detailsFilePath = path.join(__dirname, "data", "assignment.json");
-// let details;
-
-// // Load the details.json file on server start
-// try {
-//   details = JSON.parse(fs.readFileSync(detailsFilePath, "utf-8"));
-// } catch (error) {
-//   console.error("Error loading json:", error);
-// }
-
-// =======================
-
-// Destructure the necessary properties from the details object
-// const { headerDetails, questionsList, showAnswers } = details;
-
-// ========== FOR PAPER GENERATING API
-
-// // Sample route for generating the PDF
-// app.post("/generate-pdf", async (req, res) => {
-//   const { headerDetails, questionsList, showAnswers } = req.body;
-
-//   // Check if headerDetails is undefined
-//   if (!headerDetails) {
-//     return res.status(400).json({ error: "Header details are missing" });
-//   }
-
-//   // Ensure the logo exists
-//   if (!headerDetails.logo) {
-//     return res.status(400).json({ error: "Logo is missing in header details" });
-//   }
-// });
-
-// ========== FOR ASSIGNMENT GENERATING API
-
-// // Sample route for generating the PDF
-// app.post("/generate-assignment", async (req, res) => {
-//   const { headerDetails, questionsList, showAnswers } = req.body;
-
-//   // Check if headerDetails is undefined
-//   if (!headerDetails) {
-//     return res.status(400).json({ error: "Header details are missing" });
-//   }
-
-//   // Ensure the logo exists
-//   if (!headerDetails.logo) {
-//     return res.status(400).json({ error: "Logo is missing in header details" });
-//   }
-// });
-
-// =====================================
-
+app.get('/check',(req,res)=>{
+  res.send({
+    messsage:"Success online"
+  })
+})
 // Route to generate PAPER PDF
 app.post("/generate-pdf", async (req, res) => {
   const { headerDetails, questionsList, showAnswers } = req.body;
@@ -142,71 +91,96 @@ app.post("/generate-pdf", async (req, res) => {
   headerDetails.total_marks = calculateTotalMarks(questionsList);
   // CSS Styles as a string (to be included directly in the HTML)
   const styles = `
-   body { font-family: Arial;}
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      border-bottom: 1px solid #333;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
-    }
-    .school-name {
-      font-size: 25px;
-      font-weight: bold;
-      font-family: Serif;
-    }
-    .address {
-      font-size: 16px;
-      color: #888;
-    }
-    .section {
-      margin-top: 20px;
-    }
-    .question-type {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      margin-bottom: 10px;
-      padding-top: 20px;
-    }
-    .question {
-      margin-left: 20px;
-    }
-    .answer {
-      margin-top: 5px;
-      margin-bottom: 5px;
-    }
-    .checkbox {
-      height: 12px;
-      width: 12px;
-      margin-right: 5px;
-    }
-    .exam-header {
-      width: 100%;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      font-family: Serif;
-      font-weight: 600;
-    }
-    .left {
-      text-align: left;
-    }
-    .center {
-      text-align: left;
-    }
-    .right {
-      text-align: left;
-    }
-    .mcq-options {
-      display: flex;
-      gap: 10px;
-    }
-    .tfbox {
-      width: 20px;
-    }
-  `;
+  body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+
+  .school-name {
+    font-size: 25px;
+    font-weight: bold;
+    font-family: Serif;
+  }
+
+  .address {
+    font-size: 16px;
+    color: #888;
+  }
+
+  .exam-header {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    font-family: Serif;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .section {
+    margin-top: 30px;
+  }
+
+  .question-type {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 15px;
+    padding-top: 20px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .question {
+    margin-left: 20px;
+    margin-bottom: 20px;
+    font-weight: 400;
+    font-size: 15px;
+  }
+
+  .answer {
+    margin-top: 5px;
+    margin-left: 20px;
+    color: #006400;
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  .checkbox {
+    height: 12px;
+    width: 12px;
+    margin-right: 5px;
+  }
+
+  .mcq-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 8px;
+    margin-left: 25px;
+  }
+
+  .mcq-options div {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+  }
+
+  .tfbox {
+    width: 25px;
+    margin-left: 10px;
+  }
+`;
+
 
   // Generate HTML content
   let htmlContent = `
